@@ -1,30 +1,73 @@
-import express from "express";
-import bcrypt from "bcryptjs";
-import User from "../models/User.js";
-
+   const express = require('express');
 const router = express.Router();
+const Model = require('../models/UserModel');
 
-// Signup Route
-router.post("/signup", async (req, res) => {
-  try {
-    const { email, password } = req.body;
+router.post('/add', (req, res) => {
+    console.log(req.body);
 
-    // Check if user exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: "User already exists" });
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Save user
-    const newUser = new User({ email, password: hashedPassword });
-    await newUser.save();
-
-    res.status(201).json({ message: "User created successfully" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
+    new Model(req.body).save()
+        .then((result) => {
+            res.status(200).json(result);
+        }).catch((err) => {
+            console.log(err);
+            res.status(500).json(err);
+        });
 });
 
-export default router;
+//getallj
+router.get('/getall', (req, res) => {
+    Model.find()
+        .then((result) => {
+            res.status(200).json(result);
+        }).catch((err) => {
+            console.log(err);
+            res.status(500).json(err);
+        });
+});
+// : denotes url 
+router.get('/getbyemail/:email', (req, res) => {
+    console.log(req.params.email);
+    Model.findOne({ email: req.params.email })
+
+        .then((result) => {
+            res.status(200).json(result);
+        }).catch((err) => {
+            console.log(err);
+            res.status(500).json(err);
+        });
+});
+
+router.get('/getbyid/:id', (req, res) => {
+    Model.findById(req.params.id)
+        .then((result) => {
+            res.status(200).json(result);
+        }).catch((err) => {
+            console.log(err);
+            res.status(500).json(err);
+        });
+
+})
+//delete
+router.delete('/delete/:id', (req, res) => {
+    Model.findByIdAndDelete(req.params.id)
+        .then((result) => {
+            res.status(200).json(result);
+        }).catch((err) => {
+            console.log(err);
+            res.status(500).json(err);
+        });
+});
+
+//update
+router.put('/update/:id', (req, res) => {
+    Model.findByIdAndUpdate(req.params.id, req.body, { new: true })
+        .then((result) => {
+            res.status(200).json(result);
+        }).catch((err) => {
+            console.log(err);
+            res.status(500).json(err);
+        });
+});
+
+module.exports = router;
+
