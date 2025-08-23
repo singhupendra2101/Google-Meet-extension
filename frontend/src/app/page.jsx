@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Brain, Video, FileText, Sun, Moon } from "lucide-react";
 import { motion } from "framer-motion";
+  
 
 // ---------------- Header ----------------
 const Header = ({ toggleTheme, darkMode }) => (

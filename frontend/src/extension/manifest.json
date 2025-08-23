@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Google Meet Summarizer",
+  "version": "1.0",
+  "description": "Summarize Google Meet meetings using AI.",
+  "permissions": ["scripting", "activeTab", "storage"],
+  "host_permissions": [
+    "https://meet.google.com/*",
+    "http://localhost:5000/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icons/icon.jpg"
+
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://meet.google.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
