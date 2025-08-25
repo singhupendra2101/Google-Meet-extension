@@ -1,49 +1,74 @@
-let transcript = [];
-let observer;
+// content.js
 
-function startObserving() {
-  // captions container in Google Meet
-  const captionsContainer = document.querySelector('[aria-live="polite"]');
+let observer = null;
+let isCapturing = false;
+let fullTranscript = "";
 
-  if (!captionsContainer) {
-    console.log("⚠️ Captions not found. Enable Captions in Google Meet.");
+// Listen for the toggle message from the popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "toggleCapture") {
+    isCapturing = !isCapturing;
+    if (isCapturing) {
+      startCapturing();
+      sendResponse({ status: "✅ Capturing started..." });
+    } else {
+      stopCapturing();
+      sendResponse({ status: "⏹️ Capturing stopped." });
+    }
+  }
+  return true;
+});
+
+function startCapturing() {
+  // This selector targets the container where caption text appears.
+  // IMPORTANT: Google may change this selector in the future, breaking the extension.
+  const targetSelector = 'div[jsname="a4sP2b"]';
+  const targetNode = document.querySelector(targetSelector);
+
+  if (!targetNode) {
+    console.error("Caption container not found. Make sure captions are turned on.");
+    alert("Could not find the caption container. Please turn on captions in Google Meet first.");
+    isCapturing = false; // Reset state
     return;
   }
+  
+  console.log("Caption container found. Starting observer.");
+  fullTranscript = ""; // Reset transcript
 
-  observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      mutation.addedNodes.forEach((node) => {
-        if (node.innerText) {
-          transcript.push(node.innerText);
-          console.log("Transcript:", node.innerText);
+  // The MutationObserver watches for when new text is added to the DOM
+  observer = new MutationObserver(mutations => {
+    mutations.forEach(mutation => {
+      mutation.addedNodes.forEach(node => {
+        // We look for the specific span that holds the caption text.
+        // Google uses a class that might change, here it's 'iTTPOb VbkSUe'
+        const captionElement = node.querySelector('span[jsname="YSxMec"]');
+        if (captionElement && captionElement.innerText) {
+          const newText = captionElement.innerText;
+          // Append the new text to our full transcript
+          fullTranscript += newText + " ";
+          console.log("Captured:", newText);
         }
       });
     });
   });
 
-  observer.observe(captionsContainer, { childList: true, subtree: true });
+  // Configuration for the observer
+  const config = { childList: true, subtree: true };
+  // Start observing the target node
+  observer.observe(targetNode, config);
 }
 
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.action === "stopCapture") {
-    if (observer) observer.disconnect();
-    sendTranscript();
+function stopCapturing() {
+  if (observer) {
+    observer.disconnect();
+    observer = null;
+    console.log("Observer disconnected. Final transcript:");
+    console.log(fullTranscript);
+
+    // Send the complete transcript to the background script for processing
+    chrome.runtime.sendMessage({
+      action: "processTranscript",
+      data: fullTranscript
+    });
   }
-});
-
-function sendTranscript() {
-  fetch("http://localhost:5000/summarize", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text: transcript.join(" ") })
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      console.log("✅ AI Summary:", data.summary);
-      alert("📌 Meeting Summary:\n" + data.summary);
-    })
-    .catch((err) => console.error("❌ Error sending transcript:", err));
 }
-
-// Start observing when Meet loads
-startObserving();

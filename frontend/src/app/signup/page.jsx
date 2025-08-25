@@ -40,7 +40,32 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-200 relative overflow-hidden">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-200 relative overflow-hidden">
+      {/* Animated Project Title */}
+      
+<motion.h1
+        initial={{ opacity: 0, y: -60, scale: 0.8 }}
+        animate={{ opacity: 1, y: [0, -10, 0], scale: 1 }}
+        transition={{ duration: 1, ease: "easeOut", repeat: Infinity, repeatDelay: 4 }}
+        className="relative text-6xl font-extrabold mb-4 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent"
+      >
+        <span className="animate-text-shimmer bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          MeetMinds
+        </span>
+
+        {/* Glow Effect */}
+        <span className="absolute inset-0 blur-2xl opacity-30 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></span>
+      </motion.h1>
+      {/* Tagline */}
+      <motion.p
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, delay: 0.5 }}
+        className="text-gray-600 text-lg font-medium mb-10"
+      >
+        Connect • Collaborate • Create
+      </motion.p>
+
       {/* Background animations */}
       <motion.div
         className="absolute top-10 left-10 w-32 h-32 bg-blue-300 rounded-full mix-blend-multiply filter blur-2xl opacity-60"
@@ -57,7 +82,7 @@ const AuthPage = () => {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6 }}
-        className="bg-white shadow-xl rounded-2xl p-8 max-w-md w-full z-10"
+        className="bg-white shadow-2xl rounded-2xl p-8 max-w-md w-full z-10 backdrop-blur-md"
       >
         <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
           {isSignUp ? "Create Account" : "Welcome Back"}
@@ -117,7 +142,7 @@ const AuthPage = () => {
                 type="submit"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-full bg-blue-600 text-white py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 rounded-lg shadow-lg hover:opacity-90 transition"
               >
                 {isSignUp ? "Create Account" : "Sign In"}
               </motion.button>
