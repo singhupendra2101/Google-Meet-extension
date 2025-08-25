@@ -10,7 +10,7 @@ mongoose.connect(url)
     console.log(err);
 })
 
-console.log('Another statement');
+// console.log('Another statement');
 
 module.exports = mongoose;
 
