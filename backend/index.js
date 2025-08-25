@@ -1,5 +1,6 @@
 const express = require('express');
 const UserRouter = require('./routers/userRouter');
+const meetRouter = require('./routers/meetrouter');
 
 const app = express();
 const port = 5000;
@@ -7,6 +8,7 @@ const port = 5000;
 // middlewares
 app.use(express.json());
 app.use('/user' , UserRouter);
+app.use('/meet', meetRouter);
 
 // routes
 app.get('/user', (req, res) => {
@@ -27,5 +29,5 @@ app.get('/delete', (req, res) => {
 
 // starting the server
 app.listen(port, () => {
-    console.log('server has started');
+    console.log('Server has started');
 });
