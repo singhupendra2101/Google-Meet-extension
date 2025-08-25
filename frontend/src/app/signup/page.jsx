@@ -1,11 +1,12 @@
 "use client";
 import React, { useState } from "react";
 import { Mail, Lock, User } from "lucide-react";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form, Field, ErrorMessage} from "formik";
 import * as Yup from "yup";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc"; // ✅ Google icon
+import axios from "axios";
 
 const AuthPage = () => {
   const [isSignUp, setIsSignUp] = useState(true);
@@ -22,16 +23,25 @@ const AuthPage = () => {
     password: Yup.string().min(6, "Password too short").required("Required"),
   });
 
-  const handleSubmit = (values) => {
-    if (isSignUp) {
-      alert("✅ Account created! Please check your email.");
-    } else {
-      alert("✅ Signed in successfully!");
+  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    try {
+      if (isSignUp) {
+        // Sign Up: POST to /user/add
+        await axios.post("http://localhost:5000/user/add", values);
+        alert("✅ Account created! Please check your email.");
+        resetForm();
+      } else {
+        // Sign In: POST to /user/login (example)
+        await axios.post("http://localhost:5000/user/authenticate", values);
+        alert("✅ Signed in successfully!");
+        resetForm();
+      }
+      router.push("/");
+    } catch (error) {
+      alert("❌ Error: " + (error.response?.data?.message || error.message));
+    } finally {
+      setSubmitting(false);
     }
-    console.log("Form Data:", values);
-
-    // Redirect to home
-    router.push("/");
   };
 
   const handleGoogleAuth = () => {
@@ -42,8 +52,8 @@ const AuthPage = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-200 relative overflow-hidden">
       {/* Animated Project Title */}
-      
-<motion.h1
+
+      <motion.h1
         initial={{ opacity: 0, y: -60, scale: 0.8 }}
         animate={{ opacity: 1, y: [0, -10, 0], scale: 1 }}
         transition={{ duration: 1, ease: "easeOut", repeat: Infinity, repeatDelay: 4 }}
