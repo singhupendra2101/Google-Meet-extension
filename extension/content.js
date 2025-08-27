@@ -22,7 +22,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 function startCapturing() {
   // This selector targets the container where caption text appears.
   // IMPORTANT: Google may change this selector in the future, breaking the extension.
-  const targetSelector = 'div[jsname="a4sP2b"]';
+  const targetSelector = 'div[jsname="dsyhDe"]';
   const targetNode = document.querySelector(targetSelector);
 
   if (!targetNode) {
@@ -41,7 +41,7 @@ function startCapturing() {
       mutation.addedNodes.forEach(node => {
         // We look for the specific span that holds the caption text.
         // Google uses a class that might change, here it's 'iTTPOb VbkSUe'
-        const captionElement = node.querySelector('span[jsname="YSxMec"]');
+        const captionElement = node.querySelector('span[jsname="nMcdL"]');
         if (captionElement && captionElement.innerText) {
           const newText = captionElement.innerText;
           // Append the new text to our full transcript

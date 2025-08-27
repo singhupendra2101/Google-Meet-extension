@@ -1,12 +1,19 @@
 require('dotenv').config();
 const express = require('express');
+
+const cors = require('cors');
 const UserRouter = require('./routers/userRouter');
 const meetRouter = require('./routers/meetrouter');
 
 const app = express();
 const port = 5000;
 
+
 // middlewares
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true
+}));
 app.use(express.json());
 app.use('/user' , UserRouter);
 app.use('/meet', meetRouter);
