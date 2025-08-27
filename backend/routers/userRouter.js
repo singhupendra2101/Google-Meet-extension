@@ -7,6 +7,7 @@ require("dotenv").config();
 
 // Hugging Face waala code (aap ise baad mein use kar sakte hain)
 const { HfInference } = require("@huggingface/inference");
+const verifyToken = require("../middlewares/auth");
 const hf = new HfInference(process.env.HF_TOKEN);
 
 
@@ -111,6 +112,19 @@ router.get("/getall", (req, res) => {
 
 router.get("/getbyid/:id", (req, res) => {
   Model.findById(req.params.id)
+    .then((result) => {
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json(err);
+    });
+});
+
+router.get("/getuser", verifyToken, (req, res) => {
+  console.log(req.user);
+  
+  Model.findById(req.user._id)
     .then((result) => {
       res.status(200).json(result);
     })

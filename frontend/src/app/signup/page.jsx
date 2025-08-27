@@ -4,7 +4,7 @@ import { Mail, Lock, User } from "lucide-react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { motion } from "framer-motion";
-// ❌ Removed: import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 // ✅ Using window.location for redirection instead of Next.js router.
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
@@ -19,7 +19,7 @@ const FcGoogle = () => (
 
 const AuthPage = () => {
   const [isSignUp, setIsSignUp] = useState(true);
-  // ❌ Removed: const router = useRouter();
+  const router = useRouter();
 
   const SignUpSchema = Yup.object().shape({
     name: Yup.string().min(3, "Too Short!").required("Required"),
@@ -35,7 +35,7 @@ const AuthPage = () => {
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
       let submitValues = { ...values };
-      
+
       if (isSignUp) {
         await axios.post("http://localhost:5000/user/add", submitValues);
         toast.success("✅ Account created! Please Sign In now.");
@@ -43,11 +43,16 @@ const AuthPage = () => {
         setIsSignUp(false);
 
       } else {
-        await axios.post("http://localhost:5000/user/authenticate", submitValues);
+        const res = await axios.post("http://localhost:5000/user/authenticate", submitValues);
+        console.log(res.data);
+        if (res.data?.token) {
+          localStorage.setItem('token', res.data.token)
+        }
         toast.success("✅ Signed in successfully!");
         resetForm();
+         router.push("/");
         // ✅ Redirect using standard browser API
-        window.location.href = "/"; 
+        // window.location.href = "/"; 
       }
     } catch (error) {
       toast.error("❌ Error: " + (error.response?.data?.message || error.message));
@@ -63,7 +68,7 @@ const AuthPage = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-200 relative overflow-hidden">
       <Toaster position="top-center" reverseOrder={false} />
-      
+
       <motion.h1
         initial={{ opacity: 0, y: -60, scale: 0.8 }}
         animate={{ opacity: 1, y: [0, -10, 0], scale: 1 }}
@@ -75,7 +80,7 @@ const AuthPage = () => {
         </span>
         <span className="absolute inset-0 blur-2xl opacity-30 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></span>
       </motion.h1>
-      
+
       <motion.p
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
