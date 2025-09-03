@@ -52,7 +52,7 @@ router.post("/add", async (req, res) => {
 
 
 // --- NAYA AUR SECURE LOGIN LOGIC ---
-router.post("/authenticate", async (req, res) => {
+router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ message: "Please provide email and password." });
@@ -61,6 +61,8 @@ router.post("/authenticate", async (req, res) => {
   try {
     // Step 1: User ko email se dhoondhein
     const user = await Model.findOne({ email });
+    console.log(user);
+    
     if (!user) {
       // User nahi mila
       return res.status(401).json({ message: "Invalid credentials" });

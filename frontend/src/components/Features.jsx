@@ -23,7 +23,7 @@ const itemVariants = {
 const Features = ({ darkMode }) => (
   <section
     id="features"
-    className={`py-20 px-8 ${
+    className={`py-16 px-4 sm:py-20 sm:px-6 md:px-12 lg:px-24 ${
       darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"
     }`}
   >
@@ -33,7 +33,7 @@ const Features = ({ darkMode }) => (
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      className="text-4xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-sky-400"
+      className="text-2xl xs:text-3xl sm:text-4xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-sky-400"
     >
       Everything You Need for Smarter Meetings
     </motion.h3>
@@ -42,7 +42,7 @@ const Features = ({ darkMode }) => (
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
-      className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
+      className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 text-center"
     >
       {/* Each card is wrapped in motion.div for staggered animation */}
       <motion.div variants={itemVariants}>
@@ -72,7 +72,7 @@ const Features = ({ darkMode }) => (
     </motion.div>
 
     {/* --- NEW SECTION: Data Highlights (The "Graphs") --- */}
-    <div className="mt-20 max-w-5xl mx-auto">
+  <div className="mt-16 max-w-5xl mx-auto px-2">
        <motion.h4
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -82,7 +82,7 @@ const Features = ({ darkMode }) => (
       >
         Backed by Data
       </motion.h4>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 text-center">
         <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <Target className="h-10 w-10 mx-auto text-blue-500" />
           <p className="text-4xl font-bold mt-3">95%</p>

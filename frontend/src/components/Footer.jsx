@@ -28,7 +28,7 @@ const Footer = ({ darkMode }) => {
   };
 
   return (
-    <footer className="relative mt-20">
+      <footer className="relative mt-20 w-full">
       {/* Decorative SVG Wave */}
       <div className={`absolute top-0 left-0 w-full overflow-hidden leading-[0] ${darkMode ? "text-gray-900" : "text-gray-100"}`}>
         <svg
@@ -46,7 +46,7 @@ const Footer = ({ darkMode }) => {
       </div>
 
       <div className={`relative pt-24 pb-8 ${darkMode ? "bg-gray-900 text-gray-300" : "bg-gray-100 text-gray-700"}`}>
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-10">
           {/* Brand & Socials */}
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <h4 className="text-2xl font-bold text-blue-600">MeetMinds</h4>
@@ -107,12 +107,12 @@ const Footer = ({ darkMode }) => {
 
         <div className={`mt-12 border-t ${darkMode ? "border-gray-700" : "border-gray-300"}`}></div>
 
-        <div className="mt-6 flex justify-between items-center text-xs">
-          <p>© {new Date().getFullYear()} MeetMinds. All rights reserved.</p>
+        <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs px-2">
+          <p className="text-center">© {new Date().getFullYear()} MeetMinds. All rights reserved.</p>
           <motion.button
             onClick={scrollToTop}
             whileHover={{ y: -2 }}
-            className="flex items-center gap-2 hover:text-blue-500"
+            className="flex items-center gap-2 hover:text-blue-500 mt-2 sm:mt-0"
           >
             Back to Top <ArrowUpCircle className="w-4 h-4" />
           </motion.button>

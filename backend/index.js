@@ -11,12 +11,12 @@ const port = 5000;
 
 // middlewares
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000', 'chrome-extension://kcnficfjbnmmlcfbbdmjndmofdboeeno'],
     credentials: true
 }));
 app.use(express.json());
 app.use('/user' , UserRouter);
-app.use('/meet', meetRouter);
+app.use('/api/meetings', meetRouter);
 
 // routes
 app.get('/user', (req, res) => {
