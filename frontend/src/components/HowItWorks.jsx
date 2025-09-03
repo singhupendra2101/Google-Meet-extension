@@ -29,7 +29,7 @@ const itemVariants = {
 const HowItWorks = ({ darkMode }) => (
   <section
     id="how-it-works"
-    className={`py-20 px-8 ${
+    className={`py-16 px-4 sm:py-20 sm:px-6 md:px-12 lg:px-24 ${
       darkMode ? "bg-gray-800 text-white" : "bg-gray-50 text-gray-800"
     }`}
   >
@@ -52,7 +52,7 @@ const HowItWorks = ({ darkMode }) => (
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
-      className="mt-16 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-y-10 md:gap-x-8 items-start"
+      className="mt-10 max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-8 sm:gap-x-6 md:gap-x-8 items-start"
     >
       {/* Step 1 */}
       <motion.div variants={itemVariants} className="flex flex-col items-center text-center">

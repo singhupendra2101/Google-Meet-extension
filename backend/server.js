@@ -5,7 +5,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import fetch from "node-fetch";
 import authRoutes from "./routes/auth.js";
-import { pipeline } from '@xenova/transformers';
+import { pipeline } from "@xenova/transformers";
 
 dotenv.config();
 const app = express();
@@ -14,7 +14,11 @@ const port = 5000;
 // Middleware
 app.use(express.json());
 app.use(bodyParser.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -62,12 +66,10 @@ mongoose
   })
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-  // Initialize the Express app and enable CORS
-
-
+// Initialize the Express app and enable CORS
 
 // Use CORS to allow requests from your Chrome extension's origin
-app.use(cors()); 
+app.use(cors());
 // Use express.json() to parse JSON request bodies
 app.use(express.json());
 
@@ -77,29 +79,35 @@ let summarizer;
 // Create a dedicated async function to load the model
 async function loadSummarizationModel() {
   try {
-    // Load the summarization pipeline. 
+    // Load the summarization pipeline.
     // This will download the model on the first run, which may take a moment.
-    summarizer = await pipeline('summarization', 'Xenova/distilbart-cnn-6-6');
-    console.log('✅ Summarization model loaded successfully.');
+    summarizer = await pipeline("summarization", "Xenova/distilbart-cnn-6-6");
+    console.log("✅ Summarization model loaded successfully.");
   } catch (error) {
-    console.error('❌ Failed to load the summarization model:', error);
+    console.error("❌ Failed to load the summarization model:", error);
   }
 }
 
 // Define the '/summarize' endpoint
-app.post('/summarize', async (req, res) => {
+app.post("/summarize", async (req, res) => {
   // Check if the model has been loaded
   if (!summarizer) {
-    return res.status(503).json({ error: 'Summarization model is not ready yet.' });
+    return res
+      .status(503)
+      .json({ error: "Summarization model is not ready yet." });
   }
 
   // Get the transcript from the request body
   const { transcript } = req.body;
   if (!transcript) {
-    return res.status(400).json({ error: "Missing 'transcript' in request body." });
+    return res
+      .status(400)
+      .json({ error: "Missing 'transcript' in request body." });
   }
 
-  console.log(`📦 Received transcript with ${transcript.split(' ').length} words.`);
+  console.log(
+    `📦 Received transcript with ${transcript.split(" ").length} words.`
+  );
 
   try {
     // Perform the summarization
@@ -110,13 +118,12 @@ app.post('/summarize', async (req, res) => {
 
     const summaryText = summary[0].summary_text;
     console.log(`📝 Generated Summary: ${summaryText}`);
-    
+
     // Send the summary back to the extension
     res.json({ summary: summaryText });
-
   } catch (error) {
-    console.error('❌ Error during summarization:', error);
-    res.status(500).json({ error: 'Failed to generate summary.' });
+    console.error("❌ Error during summarization:", error);
+    res.status(500).json({ error: "Failed to generate summary." });
   }
 });
 

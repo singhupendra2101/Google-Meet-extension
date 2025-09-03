@@ -15,7 +15,7 @@ router.post('/add', (req, res) => {
 });
 
 //getallj
-router.get('/getall', (req, res) => {
+router.get('/', (req, res) => {
     Model.find()
         .then((result) => {
             res.status(200).json(result);
