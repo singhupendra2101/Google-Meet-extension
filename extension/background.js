@@ -7,7 +7,7 @@ let fullTranscript = "";
 
 // Listen for messages from the popup to start or stop transcription
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "startAudioCapture") {
+  if (request.action === "toggleCapture") {
     fullTranscript = ""; // Reset transcript
     startCapture(request.tabId)
       .then(() => sendResponse({ status: "✅ Capturing started..." }))
