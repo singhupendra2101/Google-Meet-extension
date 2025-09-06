@@ -43,7 +43,7 @@ const AuthPage = () => {
         setIsSignUp(false);
 
       } else {
-        const res = await axios.post("http://localhost:5000/user/authenticate", submitValues);
+        const res = await axios.post("http://localhost:5000/user/login", submitValues);
         console.log(res.data);
         if (res.data?.token) {
           localStorage.setItem('token', res.data.token)
