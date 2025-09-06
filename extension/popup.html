@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Google Meet Summarizer</title>
@@ -10,6 +11,7 @@
       width: 300px;
       padding: 10px;
     }
+
     button {
       background: #4285f4;
       color: white;
@@ -18,14 +20,19 @@
       border-radius: 4px;
       cursor: pointer;
     }
+
     button:hover {
       background: #357ae8;
     }
   </style>
 </head>
+
 <body>
   <h3>Meet Summarizer</h3>
-  <button id="summarizeBtn">Start Capturing</button>
+  <button id="startBtn">Start Capturing</button>
+  <div id="status"></div>
   <div id="summary"></div>
+  <script src="popup.js"></script>
 </body>
+
 </html>

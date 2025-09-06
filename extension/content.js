@@ -3,6 +3,8 @@
 let observer = null;
 let isCapturing = false;
 let fullTranscript = "";
+console.log('ok');
+
 
 // Listen for the toggle message from the popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
