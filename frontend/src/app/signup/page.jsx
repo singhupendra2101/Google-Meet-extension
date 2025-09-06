@@ -50,7 +50,7 @@ const AuthPage = () => {
         }
         toast.success("✅ Signed in successfully!");
         resetForm();
-         router.push("/");
+        router.push("/");
         // ✅ Redirect using standard browser API
         // window.location.href = "/"; 
       }

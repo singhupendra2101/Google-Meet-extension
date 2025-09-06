@@ -137,3 +137,38 @@
   background-size: 400% 400%;
   animation: gradient-animation 20s ease infinite;
 }
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+/* src/app/globals.css */
+
+/* Add this animation code to the end of your file */
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink-caret {
+  from,
+  to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: inherit; /* This will inherit the text color */
+  }
+}

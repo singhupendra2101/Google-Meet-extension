@@ -1,17 +1,18 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import Header from "../components/Header"; // Path check kar lein
+import Header from "../components/Header";
 import HeroSection from "../components/HeroSection";
 import Features from "../components/Features";
 import HowItWorks from "../components/HowItWorks";
+import FaqComponent from '../components/FAQ'; // Import waisa hi rahega
 import Footer from "../components/Footer";
-import { useRouter } from 'next/navigation'; // Logout ke liye zaroori
+import { useRouter } from 'next/navigation';
 
 const HomePage = () => {
   const [darkMode, setDarkMode] = useState(false);
   const router = useRouter();
 
-  // Theme management logic (yeh theek hai)
+  // Baki ka code bilkul same rahega...
   useEffect(() => {
     const isDark = localStorage.getItem("darkMode") === "true";
     setDarkMode(isDark);
@@ -26,30 +27,28 @@ const HomePage = () => {
     setDarkMode(!darkMode);
   };
 
-  // Asli logout logic
   const handleLogout = () => {
-    // Storage se token hata dein
     localStorage.removeItem('token');
-    // Auth page par wapas bhej dein
     router.push('/auth');
     console.log("User logged out!");
   };
 
   return (
     <div
-      className={`font-sans ${darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"
+      className={`font-sans ${darkMode ? "bg-background text-foreground" : "bg-background text-foreground"
         }`}
     >
-      {/* Header ab apna login status khud check karega */}
       <Header
         toggleTheme={toggleTheme}
         darkMode={darkMode}
-        onLogout={handleLogout} // Asli logout function pass karein
+        onLogout={handleLogout}
       />
       <main>
         <HeroSection darkMode={darkMode} />
         <Features darkMode={darkMode} />
         <HowItWorks darkMode={darkMode} />
+        {/* FAQ Component se darkMode prop hata diya gaya hai */}
+        <FaqComponent />
       </main>
       <Footer darkMode={darkMode} />
     </div>
