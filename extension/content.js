@@ -37,7 +37,7 @@ function startCapturing() {
   console.log("Caption container found. Starting observer.");
   fullTranscript = ""; // Reset transcript
 
-  // The MutationObserver watches for when new text is added to the DOM
+  
   observer = new MutationObserver(mutations => {
     mutations.forEach(mutation => {
       mutation.addedNodes.forEach(node => {

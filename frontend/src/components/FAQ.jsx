@@ -9,7 +9,7 @@ const FAQComponent = () => {
   const faqs = [
     {
       question: 'What is the core feature of this extension?',
-      answer: 'Our extension provides seamless, one-click attendance tracking for Google Meet, saving educators and professionals valuable time by automating a tedious manual task.'
+      answer: 'Google Meet extensions supercharge virtual meetings by introducing a suite of powerful features in one package. For productivity, they offer tools like live transcription to convert speech into text in real-time and AI summaries that automatically create concise meeting notes with key action items'
     },
     {
       question: 'How does the installation process work?',

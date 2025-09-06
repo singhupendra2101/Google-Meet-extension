@@ -1,13 +1,14 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 
 const screenshots = {
-  install: 'https://placehold.co/800x450/4f46e5/ffffff?text=Chrome+Web+Store%0A%22Add+to+Chrome%22',
-  pin: 'https://placehold.co/800x450/4f46e5/ffffff?text=Browser+Toolbar%0AExtensions+%3E+Pin',
-  inMeet: 'https://placehold.co/800x450/4f46e5/ffffff?text=Google+Meet+Interface%0AExtension+Icon',
-  features: 'https://placehold.co/800x450/4f46e5/ffffff?text=Extension+Panel%0ALive+Transcription+%26+Summary',
-  history: 'https://placehold.co/800x450/4f46e5/ffffff?text=Meeting+History%0APast+Summaries',
+  install: 'https://www.lifewire.com/thmb/-sFofBHFL-nCZPu8cI-1IeAvWw4=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/001_install-extensions-chrome-4103627-1f5e086e25f6440bbf6ceb23ecd13d29.jpg',
+  pin: 'https://storage.googleapis.com/support-forums-api/attachment/message-219233689-6490623875140970275.png',
+  inMeet: 'https://storage.googleapis.com/support-forums-api/attachment/message-289789021-7569629339266176466.png',
+  features: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSlJY1VMy_MlColRgoHgItdg8PeTYlqdVKfIw&sy',
+  history: 'https://thumbs.dreamstime.com/b/review-meeting-four-little-men-round-table-concept-business-done-periodically-performance-39499802.jpg',
 };
 
 function CheckIcon() {
@@ -37,9 +38,9 @@ export default function HowToUseGuidePage() {
     <div className="bg-gradient-to-b from-gray-50 to-blue-100 dark:from-gray-900 dark:to-blue-800 min-h-screen text-gray-800 dark:text-gray-200 font-sans antialiased">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="pt-8">
-            <a href="/" className="inline-flex items-center text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-300 bg-white/50 dark:bg-white/10 hover:bg-white/80 px-4 py-2 rounded-lg shadow-md">
+            <Link href="/" className="inline-flex items-center text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-300 bg-white/50 dark:bg-white/10 hover:bg-white/80 px-4 py-2 rounded-lg shadow-md">
                 <BackArrowIcon /> Back to Home
-            </a>
+            </Link>
         </div>
         <header className="text-center pt-8 pb-16">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 dark:text-white mb-4 tracking-tight">
@@ -87,4 +88,3 @@ export default function HowToUseGuidePage() {
     </div>
   );
 }
-

@@ -403,11 +403,8 @@ function saveSettings() {
         }, 2000);
       }
     });
-    
-    // Close the modal
-    toggleSettings();
   }
-}
+// ...existing code...
 
 // Toggle sidebar
 function toggleSidebar() {
@@ -850,24 +847,31 @@ function extractSpeakerName(captionElement) {
   return "Unknown";
 }
 
-// Find the caption container in the DOM
+// Find the caption container in the DOM (2025 update)
 function findCaptionContainer() {
+  // Try the most up-to-date selectors for Google Meet captions
   const containerSelectors = [
-    'div[role="region"][aria-label="Captions"]',
-    '.nMcdL.bj4p3b',
+    'div[role="region"][aria-label="Captions"]', // Main captions region
+    'div[jscontroller][jsaction][tabindex="0"]', // Fallback for region
+    '.TBMuR.buGMKc', // 2025: Google Meet's main captions container (update as needed)
+    '.nMcdL.bj4p3b', // Older selector
     '.adE6rb',
     '.iOzk7'
   ];
-  
   for (const selector of containerSelectors) {
     const container = document.querySelector(selector);
     if (container) {
-      console.log(`Found caption container with selector: ${selector}`);
+      console.log(`[CapMeet] Found caption container with selector: ${selector}`);
       return container;
     }
   }
-  
-  console.log('Could not find caption container with any known selector');
+  // Fallback: try to find any element with captions-like text
+  const possible = Array.from(document.querySelectorAll('div, span')).find(el => el.textContent && el.textContent.match(/captions?/i));
+  if (possible) {
+    console.log('[CapMeet] Fallback: found possible caption container by text');
+    return possible;
+  }
+  console.log('[CapMeet] Could not find caption container with any known selector');
   return null;
 }
 
@@ -920,66 +924,66 @@ function isLikelyUIText(text) {
   return false;
 }
 
-// Process all captions in the container
+// Process all captions in the container (2025 update)
 function processCaptions() {
-  console.log('Processing captions, isRecording:', isRecording);
-  
+  console.log('[CapMeet] Processing captions, isRecording:', isRecording);
   if (!isRecording) {
-    console.log('Not recording, skipping caption processing');
+    console.log('[CapMeet] Not recording, skipping caption processing');
     return;
   }
-
   const container = findCaptionContainer();
   if (!container) {
-    console.log('No caption container found');
+    console.log('[CapMeet] No caption container found');
     return;
   }
-  
   try {
-    // Get all caption elements using the specific class names
-    const captionElements = container.querySelectorAll('.bh44bd.VbkSUe, .KcIKyf.jxFHg, .KcIKyf, .nMcdL.bj4p3b');
-    
-    console.log(`Found ${captionElements.length} caption elements`);
-    
-    if (!captionElements || captionElements.length === 0) {
-      console.log('No caption elements found in container');
+    // Try the most up-to-date selectors for caption elements
+    const captionSelectors = [
+      '.TBMuR.buGMKc', // 2025: Main caption line (update as needed)
+      '.bh44bd.VbkSUe', // Older
+      '.KcIKyf.jxFHg',
+      '.KcIKyf',
+      '.nMcdL.bj4p3b'
+    ];
+    let captionElements = [];
+    for (const sel of captionSelectors) {
+      const found = Array.from(container.querySelectorAll(sel));
+      if (found.length > 0) {
+        captionElements = found;
+        console.log(`[CapMeet] Found ${found.length} caption elements with selector: ${sel}`);
+        break;
+      }
+    }
+    if (captionElements.length === 0) {
+      console.log('[CapMeet] No caption elements found in container');
       return;
     }
-    
     // Get the latest caption element
-    const latestCaptionElement = Array.from(captionElements).pop();
+    const latestCaptionElement = captionElements[captionElements.length - 1];
     if (!latestCaptionElement) {
-      console.log('Could not get latest caption element');
+      console.log('[CapMeet] Could not get latest caption element');
       return;
     }
-    
     // Get the complete caption text
-    const textElement = latestCaptionElement.querySelector('.bh44bd.VbkSUe') || latestCaptionElement;
-    const newText = textElement.textContent.trim();
-    
-    console.log('Raw caption text found:', newText);
-    
+    const newText = latestCaptionElement.textContent.trim();
+    console.log('[CapMeet] Raw caption text found:', newText);
     // If text is identical to what we've already processed, skip it
     if (newText === lastProcessedText) {
-      console.log('Skipping duplicate caption text');
+      console.log('[CapMeet] Skipping duplicate caption text');
       return;
     }
-    
     // Use our improved extract function to get speaker name
     const speakerName = extractSpeakerName(latestCaptionElement);
-    console.log('Extracted speaker name:', speakerName);
-    
+    console.log('[CapMeet] Extracted speaker name:', speakerName);
     // Remove speaker name from text if present
     let captionText = newText;
     if (speakerName !== 'Unknown') {
-      // Try different separator patterns
       captionText = newText.replace(`${speakerName}:`, '')
                           .replace(`${speakerName}：`, '')
                           .replace(`${speakerName} :`, '')
                           .replace(`${speakerName} ：`, '')
                           .trim();
     }
-    
     // If the caption text is still the same as newText and contains a colon,
     // try to extract speaker name and text
     if (captionText === newText && newText.includes(':')) {
@@ -988,115 +992,63 @@ function processCaptions() {
         captionText = parts.slice(1).join(':').trim();
       }
     }
-    
-    console.log('Processed caption text:', captionText);
-    
+    console.log('[CapMeet] Processed caption text:', captionText);
     // Skip if we don't have meaningful text or if it's UI text
     if (!captionText) {
-      console.log('Skipping empty caption');
+      console.log('[CapMeet] Skipping empty caption');
       return;
     }
-    
-    // Only do UI text check if it's not clearly someone speaking
     if (captionText.length < 10 && isLikelyUIText(captionText)) {
-      console.log('Skipping likely UI text');
+      console.log('[CapMeet] Skipping likely UI text');
       return;
     }
-    
-    // Update last processed text
     lastProcessedText = newText;
-    
     // Handle continuous speech from the same speaker
     let updatedExistingCaption = false;
     let currentCaptionId = '';
-    
-    // Check if the last caption was from the same speaker
     if (capturedCaptions.length > 0) {
       const lastCaption = capturedCaptions[capturedCaptions.length - 1];
       if (lastCaption.speaker === speakerName) {
-        // This is the same speaker continuing to talk
-        console.log('Same speaker continuing, updating existing caption');
-        
-        // Check if the new text is completely different or a continuation
-        // If it's very different, it might be a new thought - start a new caption
-        // If it's similar or an extension, update the existing caption
-        
         const lastText = lastCaption.text;
-        // If the new text contains what we already had (or vice versa), it's likely a continuation
         const isContinuation = lastText.includes(captionText) || 
                                captionText.includes(lastText) ||
-                               // Check if they share a significant portion of words
                                checkTextSimilarity(lastText, captionText);
-                               
         if (isContinuation) {
-          // Update the existing caption - always keep the longer text
           if (captionText.length > lastText.length) {
             lastCaption.text = captionText;
           }
           lastCaption.timestamp = new Date().toISOString();
-          
           currentCaptionId = lastCaption.id;
           updatedExistingCaption = true;
-          
-          // Update in the sidebar
           updateSidebarCaption(lastCaption);
         }
       }
     }
-    
-    // If we haven't updated an existing caption, create a new one
     if (!updatedExistingCaption) {
-      // Generate a unique ID for this caption
       const captionId = `caption-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       currentCaptionId = captionId;
-      
-      console.log('Adding new caption with ID:', captionId);
-      
-      // Add new caption
+      console.log('[CapMeet] Adding new caption with ID:', captionId);
       const newCaption = {
         timestamp: new Date().toISOString(),
         speaker: speakerName,
         text: captionText,
         id: captionId
       };
-      
       capturedCaptions.push(newCaption);
-      
-      // Also add to captionData for compatibility
       captionData.push({
         speaker: speakerName,
         text: captionText,
         timestamp: new Date().toISOString(),
         id: captionId
       });
-      
-      // Add to sidebar
       addCaptionToSidebar(newCaption);
     }
-    
-    // Save more frequently
     if (capturedCaptions.length % 3 === 0 || updatedExistingCaption) {
       saveCaptionData();
     }
   } catch (error) {
-    console.error('Error processing captions:', error);
+    console.error('[CapMeet] Error processing captions:', error);
   }
-}
-
-// Helper function to check if two texts are similar enough to be considered a continuation
-function checkTextSimilarity(text1, text2) {
-  // Simple word-based similarity check
-  const words1 = text1.toLowerCase().split(/\s+/);
-  const words2 = text2.toLowerCase().split(/\s+/);
-  
-  // Count common words
-  const commonWords = words1.filter(word => words2.includes(word));
-  
-  // Get the shorter text's word count
-  const minLength = Math.min(words1.length, words2.length);
-  
-  // If at least 30% of the words are common, consider it similar
-  return commonWords.length >= minLength * 0.3;
 }
 
 // Function to update caption in sidebar
@@ -1318,3 +1270,5 @@ function summarizeCaptions() {
     });
   }
 }
+}
+

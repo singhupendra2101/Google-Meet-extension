@@ -1,6 +1,5 @@
 "use client";
-// CORRECTED: The extra comma after 'React' has been removed.
-import React, { useState } from "react"; 
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon, MoreVertical, LogOut } from "lucide-react";
 import Link from "next/link";
@@ -8,12 +7,19 @@ import Link from "next/link";
 const Header = ({ toggleTheme, darkMode, isLoggedIn, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const navItems = [
+    { name: "Features", href: "/#features" },
+    { name: "How it Works", href: "/#how-it-works" },
+    { name: "Download", href: "/#download" },
+    { name: "User Guide", href: "/HowToUseGuide" },
+  ];
+
   return (
     <motion.header
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className="sticky top-0 z-50 relative" 
+      className="sticky top-0 z-50 relative"
     >
       <div className="animated-gradient absolute inset-0 z-0" />
       <div className="absolute inset-0 bg-black opacity-40 z-0" />
@@ -22,15 +28,14 @@ const Header = ({ toggleTheme, darkMode, isLoggedIn, onLogout }) => {
           MeetMinds
         </Link>
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-          {["Features", "How it Works", "Download"].map((item) => (
-            <a key={item} href={`#${item.toLowerCase().replace(/\s+/g, "-")}`} className="relative group">
-              {item}
+          {navItems.map((item) => (
+            <Link key={item.name} href={item.href} className="relative group">
+              {item.name}
               <span className="absolute left-0 -bottom-1 w-0 h-0.5 bg-white transition-all group-hover:w-full"></span>
-            </a>
+            </Link>
           ))}
         </nav>
         <div className="flex items-center gap-4">
-          {/* The Sign Up button is removed. If not logged in, this renders nothing. */}
           {isLoggedIn ? (
             <div className="relative">
               <motion.button
