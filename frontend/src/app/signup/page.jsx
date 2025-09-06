@@ -43,14 +43,14 @@ const AuthPage = () => {
         setIsSignUp(false);
 
       } else {
-        const res = await axios.post("http://localhost:5000/user/authenticate", submitValues);
+        const res = await axios.post("http://localhost:5000/user/login", submitValues);
         console.log(res.data);
         if (res.data?.token) {
           localStorage.setItem('token', res.data.token)
         }
         toast.success("✅ Signed in successfully!");
         resetForm();
-         router.push("/");
+        router.push("/");
         // ✅ Redirect using standard browser API
         // window.location.href = "/"; 
       }
