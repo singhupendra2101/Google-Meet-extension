@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Google Meet Sidebar Extension",
+  "version": "1.0",
+  "description": "Shows a sidebar on the Google Meet website.",
+  "permissions": ["storage", "scripting"],
+  "host_permissions": [
+    "https://meet.google.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://meet.google.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon.jpg",
+    "48": "icons/icon.jpg",
+    "128": "icons/icon.jpg"
+  }
+}
