@@ -3,6 +3,10 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon, MoreVertical, LogOut } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+
+// 1. IMPORT THE LOGO HERE at the top of the file
+import logoSrc from "../images/logo3.png"; // Correct relative path
 
 const Header = ({ toggleTheme, darkMode, isLoggedIn, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -16,7 +20,7 @@ const Header = ({ toggleTheme, darkMode, isLoggedIn, onLogout }) => {
 
   return (
     <motion.header
-      initial={{ y: -80, opacity: 0 }}
+      initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6 }}
       className="sticky top-0 z-50 relative"
@@ -24,8 +28,16 @@ const Header = ({ toggleTheme, darkMode, isLoggedIn, onLogout }) => {
       <div className="animated-gradient absolute inset-0 z-0" />
       <div className="absolute inset-0 bg-black opacity-40 z-0" />
       <div className="relative z-10 flex justify-between items-center px-8 py-4 text-white">
-        <Link href="/" className="text-2xl font-extrabold tracking-wide text-white drop-shadow-md">
-          MeetMinds
+        <Link href="/" className="flex items-center">
+          {/* 2. USE THE IMPORTED VARIABLE in the src prop */}
+          <Image
+            src={logoSrc}
+            alt="MeetMinds Logo"
+            width={150} // Adjust width as needed
+            height={50} // Adjust height as needed
+            priority    // Helps load the logo faster
+            className="drop-shadow-md"
+          />
         </Link>
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
           {navItems.map((item) => (
