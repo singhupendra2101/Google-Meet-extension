@@ -9,6 +9,11 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 
+// 1. Import the Image component and your logo
+import Image from "next/image";
+// Corrected the path to the logo
+import logoSrc from "@/images/logo.png"; // Assumes '@/' is configured to point to your 'src' folder
+
 // Google Icon SVG component
 const FcGoogle = () => (
   <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid" viewBox="0 0 256 262" width="24" height="24">
@@ -78,10 +83,17 @@ const AuthPage = () => {
             className="bg-white shadow-2xl rounded-2xl p-8 max-w-md w-full"
         >
             <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold text-gray-800 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                    MeetMinds
-                </h1>
-                <p className="text-gray-500 mt-2 text-sm font-medium">
+                {/* 2. Replace the h1 text with the Image component */}
+                <div className="flex justify-center">
+                    <Image
+                        src={logoSrc}
+                        alt="MeetMinds Logo"
+                        width={200}  // Adjust size as needed
+                        height={100} // Adjust size as needed
+                        priority
+                    />
+                </div>
+                <p className="text-gray-500 mt-4 text-sm font-medium">
                     Connect • Collaborate • Create
                 </p>
             </div>

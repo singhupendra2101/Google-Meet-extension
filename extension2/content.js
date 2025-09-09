@@ -42,34 +42,49 @@
   captionsContainer.innerHTML = '<p style="color:#888">No captions yet. Start speaking to see captions here.</p>';
   sidebar.appendChild(captionsContainer);
 
-  // Helper to add a caption to the sidebar
+  // Helper to add or update a caption in the sidebar
   function addCaptionToSidebar(text, speaker) {
     // Remove "no captions" message
     const noCaptions = captionsContainer.querySelector('p');
     if (noCaptions && noCaptions.textContent.includes('No captions')) {
       captionsContainer.innerHTML = '';
     }
-    const entry = document.createElement('div');
-    entry.style.marginBottom = '10px';
-    entry.style.padding = '8px 10px';
-    entry.style.background = '#fff';
-    entry.style.borderRadius = '6px';
-    entry.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)';
-    entry.style.fontSize = '15px';
-    entry.style.color = '#222';
-    if (speaker) {
-      const speakerSpan = document.createElement('span');
-      speakerSpan.style.fontWeight = 'bold';
-      speakerSpan.style.color = '#1a73e8';
-      speakerSpan.textContent = speaker + ': ';
-      entry.appendChild(speakerSpan);
+    // Find the last entry
+    const entries = captionsContainer.querySelectorAll('.caption-entry');
+    const lastEntry = entries.length > 0 ? entries[entries.length - 1] : null;
+    // If last entry is from the same speaker, update it
+    if (lastEntry && lastEntry.dataset.speaker === (speaker || '')) {
+      const textSpan = lastEntry.querySelector('.caption-text');
+      if (textSpan) {
+        textSpan.textContent = text;
+      }
+    } else {
+      // Otherwise, add a new entry
+      const entry = document.createElement('div');
+      entry.className = 'caption-entry';
+      entry.dataset.speaker = speaker || '';
+      entry.style.marginBottom = '10px';
+      entry.style.padding = '8px 10px';
+      entry.style.background = '#fff';
+      entry.style.borderRadius = '6px';
+      entry.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)';
+      entry.style.fontSize = '15px';
+      entry.style.color = '#222';
+      if (speaker) {
+        const speakerSpan = document.createElement('span');
+        speakerSpan.style.fontWeight = 'bold';
+        speakerSpan.style.color = '#1a73e8';
+        speakerSpan.textContent = speaker + ': ';
+        entry.appendChild(speakerSpan);
+      }
+      const textSpan = document.createElement('span');
+      textSpan.className = 'caption-text';
+      textSpan.textContent = text;
+      entry.appendChild(textSpan);
+      captionsContainer.appendChild(entry);
+      // Scroll to bottom
+      captionsContainer.scrollTop = captionsContainer.scrollHeight;
     }
-    const textSpan = document.createElement('span');
-    textSpan.textContent = text;
-    entry.appendChild(textSpan);
-    captionsContainer.appendChild(entry);
-    // Scroll to bottom
-    captionsContainer.scrollTop = captionsContainer.scrollHeight;
   }
 
   // Find the captions container in Google Meet
