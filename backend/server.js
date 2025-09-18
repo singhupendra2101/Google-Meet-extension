@@ -2,85 +2,39 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
-import bodyParser from "body-parser";
-import fetch from "node-fetch";
-import authRoutes from "./routes/auth.js";
 import { pipeline } from "@xenova/transformers";
 
+// Load environment variables from .env file
 dotenv.config();
-const app = express();
-const port = 5000;
 
-// Middleware
-app.use(express.json());
-app.use(bodyParser.json());
+const app = express();
+const port = process.env.PORT || 5000;
+
+// --- Middleware Setup (CORRECT ORDER) ---
+// These must come BEFORE your API routes to work properly.
+// CORS setup to allow all origins (for development/testing only)
 app.use(
   cors({
-    origin: "*",
+    origin: '*',
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: false,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   })
 );
 
-// Routes
-app.use("/api/auth", authRoutes);
+// Explicitly handle preflight OPTIONS requests for all routes
+app.options("*", cors({ origin: '*' }));
+app.use(express.json({ limit: "50mb" })); // Use express.json() to parse JSON request bodies
 
-// Summarization Route
-app.post("/summarize", async (req, res) => {
-  try {
-    const text = req.body.text;
-
-    if (!text || text.trim().length === 0) {
-      return res.status(400).json({ error: "Transcript is empty!" });
-    }
-
-    const response = await fetch(
-      "https://api-inference.huggingface.co/models/facebook/bart-large-cnn",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.HF_API_KEY}`, // ✅ API key env me rakho
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ inputs: text }),
-      }
-    );
-
-    const result = await response.json();
-    res.json({ summary: result[0]?.summary_text || "Summary not available." });
-  } catch (err) {
-    console.error("Summarization error:", err);
-    res.status(500).json({ error: "Something went wrong!" });
-  }
-});
-
-// ✅ Connect MongoDB and start server
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log("✅ MongoDB connected");
-    app.listen(process.env.PORT || 5000, () =>
-      console.log(`🚀 Server running on port ${process.env.PORT || 5000}`)
-    );
-  })
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
-
-// Initialize the Express app and enable CORS
-
-// Use CORS to allow requests from your Chrome extension's origin
-app.use(cors());
-// Use express.json() to parse JSON request bodies
-app.use(express.json());
-
-// A simple variable to hold our summarization pipeline
+// --- AI Model Loading ---
 let summarizer;
 
-// Create a dedicated async function to load the model
 async function loadSummarizationModel() {
   try {
-    // Load the summarization pipeline.
-    // This will download the model on the first run, which may take a moment.
+    console.log("⏳ Loading summarization model...");
+    // This will download the model on the first run, which may take time.
     summarizer = await pipeline("summarization", "Xenova/distilbart-cnn-6-6");
     console.log("✅ Summarization model loaded successfully.");
   } catch (error) {
@@ -88,36 +42,46 @@ async function loadSummarizationModel() {
   }
 }
 
-// Define the '/summarize' endpoint
+// --- API Routes ---
+
 app.post("/summarize", async (req, res) => {
-  // Check if the model has been loaded
   if (!summarizer) {
     return res
       .status(503)
-      .json({ error: "Summarization model is not ready yet." });
+      .json({
+        error:
+          "Summarization model is not ready yet. Please try again in a moment.",
+      });
   }
 
-  // Get the transcript from the request body
   const { transcript } = req.body;
-  if (!transcript) {
+  if (!transcript || !Array.isArray(transcript) || transcript.length === 0) {
     return res
       .status(400)
-      .json({ error: "Missing 'transcript' in request body." });
+      .json({
+        error:
+          "Missing or invalid 'transcript' in request body. It must be an array.",
+      });
   }
 
+  // Combine the transcript array into a single string for summarization
+  const fullTranscript = transcript
+    .map((item) => `${item.speaker || "Speaker"}: ${item.text}`)
+    .join("\n");
+
   console.log(
-    `📦 Received transcript with ${transcript.split(" ").length} words.`
+    `📦 Received transcript with ${fullTranscript.split(" ").length} words.`
   );
 
   try {
-    // Perform the summarization
-    const summary = await summarizer(transcript, {
-      max_length: 150,
-      min_length: 30,
+    console.log("📝 Generating summary...");
+    const summary = await summarizer(fullTranscript, {
+      max_length: 200,
+      min_length: 40,
     });
 
     const summaryText = summary[0].summary_text;
-    console.log(`📝 Generated Summary: ${summaryText}`);
+    console.log(`✅ Summary Generated: ${summaryText}`);
 
     // Send the summary back to the extension
     res.json({ summary: summaryText });
@@ -127,9 +91,18 @@ app.post("/summarize", async (req, res) => {
   }
 });
 
-// Start the server and load the model
-app.listen(port, () => {
-  console.log(`🟢 Server is running at http://localhost:${port}`);
-  // Start loading the model after the server has started
-  loadSummarizationModel();
-});
+// --- Server and Database Connection ---
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("✅ MongoDB connected successfully.");
+    app.listen(port, () => {
+      console.log(`🚀 Server is running at http://localhost:${port}`);
+      // Start loading the AI model after the server has started
+      loadSummarizationModel();
+    });
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+    process.exit(1);
+  });

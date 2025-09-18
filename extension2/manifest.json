@@ -1,14 +1,22 @@
 {
   "manifest_version": 3,
-  "name": "Google Meet Sidebar Extension",
+  "name": "MEETMINDS",
   "version": "1.0",
   "description": "Shows a sidebar on the Google Meet website.",
-  "permissions": ["storage", "scripting"],
+  "permissions": [
+    "storage", 
+    "scripting",
+    "identity" 
+    
+  ],
   "host_permissions": [
     "https://meet.google.com/*"
   ],
   "background": {
     "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "pop.html"
   },
   "content_scripts": [
     {

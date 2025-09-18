@@ -1,10 +1,10 @@
-// content.js - Injects a sidebar on Google Meet
+// content.js - Google Meet Sidebar with recording and save summary
 
 (function() {
   if (window.__meetSidebarInjected) return;
   window.__meetSidebarInjected = true;
 
-  // Create sidebar
+  // --- Sidebar UI ---
   const sidebar = document.createElement('div');
   sidebar.id = 'meet-sidebar-extension';
   sidebar.style.position = 'fixed';
@@ -31,7 +31,6 @@
   header.textContent = 'Google Meet Sidebar';
   sidebar.appendChild(header);
 
-
   // Captions container
   const captionsContainer = document.createElement('div');
   captionsContainer.id = 'meet-captions-list';
@@ -42,8 +41,91 @@
   captionsContainer.innerHTML = '<p style="color:#888">No captions yet. Start speaking to see captions here.</p>';
   sidebar.appendChild(captionsContainer);
 
-  // Helper to add or update a caption in the sidebar
+  // Controls container
+  const controlsContainer = document.createElement('div');
+  controlsContainer.style.padding = '16px';
+  controlsContainer.style.borderTop = '1px solid #e0e0e0';
+  controlsContainer.style.background = '#f1f3f4';
+  controlsContainer.innerHTML = `
+    <button id="start-rec-btn" style="width:100%; padding: 10px; border:none; background:#28a745; color:white; border-radius:4px; cursor:pointer; margin-bottom:8px;">Start Recording</button>
+    <button id="stop-rec-btn" style="width:100%; padding: 10px; border:none; background:#dc3545; color:white; border-radius:4px; cursor:pointer; margin-bottom:8px; display:none;">Stop Recording</button>
+    <button id="save-summary-btn" style="width:100%; padding: 10px; border:none; background:#007bff; color:white; border-radius:4px; cursor:pointer; margin-bottom:8px; display:none;">Save Meeting Summary</button>
+    <div id="status-text" style="text-align:center; margin-top:10px; color:#555; font-size:14px;">Status: Idle</div>
+    <div id="summary-result" style="margin-top: 15px; padding: 12px; background: #e9ecef; border-radius: 4px; font-size: 14px; display: none; line-height: 1.6;"></div>
+  `;
+  sidebar.appendChild(controlsContainer);
+
+  // Recording state
+  let isRecording = false;
+  let recordedCaptions = [];
+
+  // Get button and status elements
+  const startBtn = sidebar.querySelector('#start-rec-btn');
+  const stopBtn = sidebar.querySelector('#stop-rec-btn');
+  const saveSummaryBtn = sidebar.querySelector('#save-summary-btn');
+  const statusText = sidebar.querySelector('#status-text');
+  const summaryResultDiv = sidebar.querySelector('#summary-result');
+
+  // Start button logic
+  startBtn.onclick = function() {
+    isRecording = true;
+    recordedCaptions = [];
+    statusText.textContent = 'Status: Recording...';
+    statusText.style.color = 'green';
+    startBtn.style.display = 'none';
+    stopBtn.style.display = 'block';
+    saveSummaryBtn.style.display = 'none';
+    summaryResultDiv.style.display = 'none';
+    captionsContainer.innerHTML = '<p style="color:#888">Recording started. Captions will appear here.</p>';
+  };
+
+  // Stop button logic
+  stopBtn.onclick = function() {
+    isRecording = false;
+    statusText.textContent = 'Status: Stopped. You can now save the summary.';
+    statusText.style.color = 'red';
+    stopBtn.style.display = 'none';
+    startBtn.style.display = 'block';
+    if (recordedCaptions.length > 0) {
+      saveSummaryBtn.style.display = 'block';
+    }
+  };
+
+  // Save summary button logic
+  saveSummaryBtn.onclick = async function() {
+    if (recordedCaptions.length === 0) {
+      alert('No captions were recorded. Please start recording first.');
+      return;
+    }
+    statusText.textContent = 'Status: Saving and summarizing...';
+    summaryResultDiv.style.display = 'block';
+    summaryResultDiv.innerHTML = '🧠 Please wait, summarizing...';
+
+    try {
+      const response = await fetch('http://localhost:5000/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript: recordedCaptions }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Server responded with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      summaryResultDiv.innerHTML = `<strong>Summary:</strong><br>${data.summary}`;
+      statusText.textContent = 'Status: Summary saved!';
+      saveSummaryBtn.style.display = 'none';
+    } catch (error) {
+      summaryResultDiv.innerHTML = `<strong>Error:</strong> Could not get summary.<br><small>${error.message}</small>`;
+      statusText.textContent = 'Status: Error!';
+    }
+  };
+
+  // Helper to add or update a caption in the sidebar and recording array
   function addCaptionToSidebar(text, speaker) {
+    if (!isRecording) return;
     // Remove "no captions" message
     const noCaptions = captionsContainer.querySelector('p');
     if (noCaptions && noCaptions.textContent.includes('No captions')) {
@@ -57,6 +139,10 @@
       const textSpan = lastEntry.querySelector('.caption-text');
       if (textSpan) {
         textSpan.textContent = text;
+      }
+      // Update last in recordedCaptions
+      if (recordedCaptions.length > 0) {
+        recordedCaptions[recordedCaptions.length - 1].text = text;
       }
     } else {
       // Otherwise, add a new entry
@@ -82,6 +168,8 @@
       textSpan.textContent = text;
       entry.appendChild(textSpan);
       captionsContainer.appendChild(entry);
+      // Add to recordedCaptions
+      recordedCaptions.push({ speaker, text });
       // Scroll to bottom
       captionsContainer.scrollTop = captionsContainer.scrollHeight;
     }
@@ -106,15 +194,12 @@
 
   // Extract speaker and text from a caption element
   function extractCaptionData(el) {
-    // Try to find speaker and text
     let speaker = '';
     let text = '';
-    // Speaker: try span with class NWpY1d or similar
     const speakerEl = el.querySelector('.NWpY1d, .zs7s8d, .YTbUzc, .KcIKyf.jxFHg, .KcIKyf, span.NWpY1d, span.zs7s8d');
     if (speakerEl) {
       speaker = speakerEl.textContent.replace(/[:：]$/, '').trim();
     }
-    // Text: try .iTTPOb, .iOzk7, or just the element's text
     const textEl = el.querySelector('.iTTPOb, .iOzk7');
     if (textEl) {
       text = textEl.textContent.trim();
@@ -126,7 +211,6 @@
     }
     return { speaker, text };
   }
-
 
   // Observe captions in Google Meet (robust, reattaches if container changes)
   function observeMeetCaptions() {
@@ -141,7 +225,6 @@
       if (observer) observer.disconnect();
       lastContainer = container;
       observer = new MutationObserver(() => {
-        // Find all caption elements (try more selectors)
         const captionEls = Array.from(container.querySelectorAll('.nMcdL.bj4p3b, [data-self-name], [data-participant-id]'));
         if (captionEls.length === 0) return;
         const lastEl = captionEls[captionEls.length - 1];
@@ -155,7 +238,6 @@
       observer.observe(container, { childList: true, subtree: true, characterData: true });
     }
 
-    // Re-attach observer if captions container changes (DOM changes)
     setInterval(() => {
       const container = findMeetCaptionsContainer();
       if (container && container !== lastContainer) {
@@ -163,10 +245,8 @@
       }
     }, 2000);
 
-    // Initial attach
     attachObserver();
   }
-
 
   // Wait for captions container to appear, then observe
   function waitForCaptionsAndObserve() {

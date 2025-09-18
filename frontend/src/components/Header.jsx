@@ -33,9 +33,9 @@ const Header = ({ toggleTheme, darkMode, isLoggedIn, onLogout }) => {
           <Image
             src={logoSrc}
             alt="MeetMinds Logo"
-            width={150} // Adjust width as needed
-            height={50} // Adjust height as needed
-            priority    // Helps load the logo faster
+            width={150} 
+            height={50}
+            priority    
             className="drop-shadow-md"
           />
         </Link>
