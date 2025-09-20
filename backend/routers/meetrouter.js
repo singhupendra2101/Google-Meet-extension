@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import Model from '../Models/meetModel.js';
+
 const router = express.Router();
-const Model = require('../Models/meetModel');
 
 router.post('/add', (req, res) => {
     console.log(req.body);
@@ -85,5 +86,4 @@ router.post('/summarize', async (req, res) => {
     }
 });
 
-
-module.exports = router;
+export default router;

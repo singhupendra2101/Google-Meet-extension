@@ -1,12 +1,11 @@
-const express = require("express");
-const router = express.Router();
-const Model = require("../models/UserModel");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-require("dotenv").config();
+import express from 'express';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import 'dotenv/config';
+import { OAuth2Client } from 'google-auth-library';
+import Model from '../Models/UserModel.js';
 
-// 1. Import Google's OAuth 2.0 client library
-const { OAuth2Client } = require('google-auth-library');
+const router = express.Router();
 // IMPORTANT: Make sure your Google Client ID is in your .env file
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -209,4 +208,4 @@ router.get("/getbyemail/:email", (req, res) => {
 });
 
 
-module.exports = router;
+export default router;

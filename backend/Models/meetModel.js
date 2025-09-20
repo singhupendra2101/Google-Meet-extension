@@ -1,12 +1,13 @@
-const { model, Schema } = require('../connection');
+import { model, Schema } from '../connection.js';
 
-const mySchema = new Schema({
+const meetSchema = new Schema({
     name: String,
-    code: { type: String, required: true },
+    code: { type: String },
     summary: String,
     description: String,
-    start:{ type: Date, required: true },
-    end:{ type: Date, required: true },
+    start: { type: Date },
+    end: { type: Date },
     createdAt: { type: Date, default: Date.now }
 });
-module.exports = model('meetnotes', mySchema);     // name - meet
+
+export default model('meetnotes', meetSchema);

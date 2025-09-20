@@ -66,7 +66,8 @@
   const statusText = sidebar.querySelector('#status-text');
   const summaryResultDiv = sidebar.querySelector('#summary-result');
 
-  // Start button logic
+  // --- Event Listeners ---
+
   startBtn.onclick = function() {
     isRecording = true;
     recordedCaptions = [];
@@ -97,11 +98,12 @@
       alert('No captions were recorded. Please start recording first.');
       return;
     }
-    statusText.textContent = 'Status: Saving and summarizing...';
+    statusText.textContent = 'Status: Summarizing and saving...';
     summaryResultDiv.style.display = 'block';
-    summaryResultDiv.innerHTML = '🧠 Please wait, summarizing...';
+    summaryResultDiv.innerHTML = '🧠 Please wait, processing your meeting...';
 
     try {
+      // Call the backend to summarize and save in one step
       const response = await fetch('http://localhost:5000/summarize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -114,17 +116,20 @@
       }
 
       const data = await response.json();
-      summaryResultDiv.innerHTML = `<strong>Summary:</strong><br>${data.summary}`;
-      statusText.textContent = 'Status: Summary saved!';
+      const summaryText = data.summary;
+
+      summaryResultDiv.innerHTML = `<strong>Summary:</strong><br>${summaryText}`;
+      statusText.textContent = 'Status: Summary generated and saved successfully!';
       saveSummaryBtn.style.display = 'none';
+
     } catch (error) {
-      summaryResultDiv.innerHTML = `<strong>Error:</strong> Could not get summary.<br><small>${error.message}</small>`;
+      summaryResultDiv.innerHTML = `<strong>Error:</strong> Could not process summary.<br><small>${error.message}</small>`;
       statusText.textContent = 'Status: Error!';
     }
   };
 
   // Helper to add or update a caption in the sidebar and recording array
-  function addCaptionToSidebar(text, speaker) {
+  function addOrUpdateCaption(speaker, text) {
     if (!isRecording) return;
     // Remove "no captions" message
     const noCaptions = captionsContainer.querySelector('p');
