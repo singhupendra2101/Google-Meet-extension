@@ -1,15 +1,18 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon, MoreVertical, LogOut } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 // 1. IMPORT THE LOGO HERE at the top of the file
 import logoSrc from "../images/logo3.png"; // Correct relative path
 
-const Header = ({ toggleTheme, darkMode, isLoggedIn, onLogout }) => {
+const Header = ({ toggleTheme, darkMode }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const router = useRouter();
 
   const navItems = [
     { name: "Features", href: "/#features" },
@@ -17,6 +20,20 @@ const Header = ({ toggleTheme, darkMode, isLoggedIn, onLogout }) => {
     { name: "Download", href: "/#download" },
     { name: "User Guide", href: "/HowToUseGuide" },
   ];
+
+  useEffect(() => {
+    const user = sessionStorage.getItem("user");
+    if (user) {
+      setCurrentUser(JSON.parse(user));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("user-token");
+    setCurrentUser(null);
+    router.push("/");
+  };
 
   return (
     <motion.header
@@ -33,9 +50,9 @@ const Header = ({ toggleTheme, darkMode, isLoggedIn, onLogout }) => {
           <Image
             src={logoSrc}
             alt="MeetMinds Logo"
-            width={150} 
+            width={150}
             height={50}
-            priority    
+            priority
             className="drop-shadow-md"
           />
         </Link>
@@ -48,7 +65,7 @@ const Header = ({ toggleTheme, darkMode, isLoggedIn, onLogout }) => {
           ))}
         </nav>
         <div className="flex items-center gap-4">
-          {isLoggedIn ? (
+          {currentUser ? (
             <div className="relative">
               <motion.button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -67,7 +84,7 @@ const Header = ({ toggleTheme, darkMode, isLoggedIn, onLogout }) => {
                     className="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-gray-900/50 backdrop-blur-md border border-white/20"
                   >
                     <button
-                      onClick={onLogout}
+                      onClick={handleLogout}
                       className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:bg-white/10"
                     >
                       <LogOut className="w-4 h-4 mr-2" />
@@ -83,7 +100,11 @@ const Header = ({ toggleTheme, darkMode, isLoggedIn, onLogout }) => {
             whileTap={{ scale: 0.95 }}
             className="p-2 rounded-full hover:bg-white/10 transition"
           >
-            {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            {darkMode ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )}
           </motion.button>
         </div>
       </div>

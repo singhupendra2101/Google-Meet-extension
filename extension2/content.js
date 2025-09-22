@@ -1,6 +1,19 @@
-// content.js - Google Meet Sidebar with recording and save summary
+// extension2/content.js (Updated & Cleaned)
 
-(function() {
+// Function to check if the user is logged in and then inject the sidebar
+function initializeSidebar() {
+  // Check if user is logged in before injecting
+  chrome.runtime.sendMessage({ action: "checkUser" }, function(response) {
+    if (response && response.loggedIn) {
+      console.log('User is logged in. Injecting sidebar.');
+      injectSidebar();
+    } else {
+      console.log('User is not logged in. Sidebar will not be injected.');
+    }
+  });
+}
+
+function injectSidebar() {
   if (window.__meetSidebarInjected) return;
   window.__meetSidebarInjected = true;
 
@@ -66,8 +79,7 @@
   const statusText = sidebar.querySelector('#status-text');
   const summaryResultDiv = sidebar.querySelector('#summary-result');
 
-  // --- Event Listeners ---
-
+  // Start button logic
   startBtn.onclick = function() {
     isRecording = true;
     recordedCaptions = [];
@@ -83,74 +95,84 @@
   // Stop button logic
   stopBtn.onclick = function() {
     isRecording = false;
-    statusText.textContent = 'Status: Stopped. You can now save the summary.';
-    statusText.style.color = 'red';
+    statusText.textContent = 'Status: Stopped. Uploading captions...';
+    statusText.style.color = 'orange';
     stopBtn.style.display = 'none';
     startBtn.style.display = 'block';
+
     if (recordedCaptions.length > 0) {
-      saveSummaryBtn.style.display = 'block';
+      uploadCaptions(recordedCaptions);
+    } else {
+      statusText.textContent = 'Status: Stopped. No captions to upload.';
     }
   };
 
-  // Save summary button logic
-  saveSummaryBtn.onclick = async function() {
-    if (recordedCaptions.length === 0) {
-      alert('No captions were recorded. Please start recording first.');
-      return;
-    }
-    statusText.textContent = 'Status: Summarizing and saving...';
-    summaryResultDiv.style.display = 'block';
-    summaryResultDiv.innerHTML = '🧠 Please wait, processing your meeting...';
-
+  // ======== FIXED UPLOAD FUNCTION ========
+  async function uploadCaptions(captions) {
     try {
-      // Call the backend to summarize and save in one step
-      const response = await fetch('http://localhost:5000/summarize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript: recordedCaptions }),
-      });
+        const data = await new Promise((resolve) => {
+            chrome.storage.local.get('user', resolve);
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Server responded with status: ${response.status}`);
-      }
+        if (!data.user || !data.user.token) { // Only need to check for token
+            console.error('User data missing');
+            statusText.textContent = 'Error: Please log in again';
+            return;
+        }
 
-      const data = await response.json();
-      const summaryText = data.summary;
+        const response = await fetch('http://localhost:5000/meet/upload', { // Make sure this URL is correct
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${data.user.token}`
+            },
+            body: JSON.stringify({
+                // 1. REMOVED userId. The backend will get it from the token.
+                transcript: captions.map(c => `${c.speaker}: ${c.text}`).join('\n'), // Sending a clean string
+                meetUrl: window.location.href,
+                startTime: new Date().toISOString(), // This should be the actual start time
+                endTime: new Date().toISOString()
+            }),
+        });
 
-      summaryResultDiv.innerHTML = `<strong>Summary:</strong><br>${summaryText}`;
-      statusText.textContent = 'Status: Summary generated and saved successfully!';
-      saveSummaryBtn.style.display = 'none';
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Upload failed');
+        }
+
+        const result = await response.json();
+        console.log('Upload successful:', result);
+        statusText.textContent = 'Status: Meeting notes saved!';
+        statusText.style.color = 'green';
 
     } catch (error) {
-      summaryResultDiv.innerHTML = `<strong>Error:</strong> Could not process summary.<br><small>${error.message}</small>`;
-      statusText.textContent = 'Status: Error!';
+        console.error('Error uploading captions:', error);
+        statusText.textContent = `Error: ${error.message}`;
+        statusText.style.color = 'red';
     }
-  };
+  }
+
+  // Save summary button logic (can be removed or repurposed)
+  saveSummaryBtn.style.display = 'none'; // We are now auto-saving on stop
 
   // Helper to add or update a caption in the sidebar and recording array
-  function addOrUpdateCaption(speaker, text) {
+  function addCaptionToSidebar(text, speaker) {
     if (!isRecording) return;
-    // Remove "no captions" message
     const noCaptions = captionsContainer.querySelector('p');
     if (noCaptions && noCaptions.textContent.includes('No captions')) {
       captionsContainer.innerHTML = '';
     }
-    // Find the last entry
     const entries = captionsContainer.querySelectorAll('.caption-entry');
     const lastEntry = entries.length > 0 ? entries[entries.length - 1] : null;
-    // If last entry is from the same speaker, update it
     if (lastEntry && lastEntry.dataset.speaker === (speaker || '')) {
       const textSpan = lastEntry.querySelector('.caption-text');
       if (textSpan) {
         textSpan.textContent = text;
       }
-      // Update last in recordedCaptions
       if (recordedCaptions.length > 0) {
         recordedCaptions[recordedCaptions.length - 1].text = text;
       }
     } else {
-      // Otherwise, add a new entry
       const entry = document.createElement('div');
       entry.className = 'caption-entry';
       entry.dataset.speaker = speaker || '';
@@ -173,22 +195,14 @@
       textSpan.textContent = text;
       entry.appendChild(textSpan);
       captionsContainer.appendChild(entry);
-      // Add to recordedCaptions
       recordedCaptions.push({ speaker, text });
-      // Scroll to bottom
       captionsContainer.scrollTop = captionsContainer.scrollHeight;
     }
   }
 
-  // Find the captions container in Google Meet
   function findMeetCaptionsContainer() {
-    // Try selectors for 2025 Google Meet
     const selectors = [
-      'div[role="region"][aria-label="Captions"]',
-      '.TBMuR.buGMKc',
-      '.nMcdL.bj4p3b',
-      '.adE6rb',
-      '.iOzk7'
+      'div[role="region"][aria-label="Captions"]', '.TBMuR.buGMKc', '.nMcdL.bj4p3b', '.adE6rb', '.iOzk7'
     ];
     for (const sel of selectors) {
       const el = document.querySelector(sel);
@@ -197,7 +211,6 @@
     return null;
   }
 
-  // Extract speaker and text from a caption element
   function extractCaptionData(el) {
     let speaker = '';
     let text = '';
@@ -217,10 +230,8 @@
     return { speaker, text };
   }
 
-  // Observe captions in Google Meet (robust, reattaches if container changes)
   function observeMeetCaptions() {
     let lastCaption = '';
-    let lastSpeaker = '';
     let observer = null;
     let lastContainer = null;
 
@@ -237,7 +248,6 @@
         if (text && text !== lastCaption) {
           addCaptionToSidebar(text, speaker);
           lastCaption = text;
-          lastSpeaker = speaker;
         }
       });
       observer.observe(container, { childList: true, subtree: true, characterData: true });
@@ -253,7 +263,6 @@
     attachObserver();
   }
 
-  // Wait for captions container to appear, then observe
   function waitForCaptionsAndObserve() {
     let tried = 0;
     const tryObserve = () => {
@@ -324,4 +333,22 @@
   document.body.appendChild(toggleBtn);
 
   document.body.appendChild(sidebar);
-})();
+}
+
+// Listen for logout message to remove the sidebar
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    if (request.action === "userLoggedOut") {
+        const sidebar = document.getElementById('meet-sidebar-extension');
+        if (sidebar) {
+            sidebar.remove();
+        }
+        const toggleBtn = document.getElementById('meet-sidebar-toggle');
+        if (toggleBtn) {
+            toggleBtn.remove();
+        }
+        window.__meetSidebarInjected = false; // Reset injection flag
+    }
+});
+
+// Run the initialization
+initializeSidebar();

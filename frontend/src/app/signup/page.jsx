@@ -44,20 +44,22 @@ const AuthPage = () => {
     try {
       if (isSignUp) {
         const { confirmPassword, ...submitValues } = values;
-        // Ensure you have these variables in your .env.local file
-        await axios.post(process.env.NEXT_PUBLIC_USER_ADD_API, submitValues);
+        // FIX: Changed endpoint from /user/add to /user/signup
+        await axios.post('http://localhost:5000/user/signup', submitValues);
         toast.success("✅ Account created! Please Sign In now.");
         resetForm();
         setIsSignUp(false);
       } else {
-        const res = await axios.post(process.env.NEXT_PUBLIC_USER_LOGIN_API, values);
+        // FIX: Changed endpoint to /user/login and corrected session storage logic
+        const res = await axios.post('http://localhost:5000/user/login', values);
         if (res.data?.token) {
-          localStorage.setItem('token', res.data.token)
+          sessionStorage.setItem('user-token', res.data.token);
+          sessionStorage.setItem('user', JSON.stringify(res.data.result));
         }
         toast.success("✅ Signed in successfully!");
         resetForm();
         // Using router.push for a smoother transition without a full page reload
-        router.push("/");
+        router.push("/dashboard");
       }
     } catch (error) {
       toast.error("❌ Error: " + (error.response?.data?.message || error.message));

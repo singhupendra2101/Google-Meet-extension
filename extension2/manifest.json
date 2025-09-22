@@ -1,30 +1,36 @@
 {
   "manifest_version": 3,
-  "name": "MEETMINDS",
-  "version": "1.0",
-  "description": "Shows a sidebar on the Google Meet website.",
+  "name": "Google Meet Notes Extension",
+  "version": "2.1",
+  "description": "Captures Google Meet captions and saves them to your account.",
   "permissions": [
-    "storage", 
-    "scripting",
-    "identity" 
-    
+    "storage"
   ],
   "host_permissions": [
-    "https://meet.google.com/*"
+    "https://meet.google.com/*",
+    "http://localhost:5000/*"
   ],
   "background": {
     "service_worker": "background.js"
   },
-  "action": {
-    "default_popup": "pop.html"
-  },
   "content_scripts": [
     {
-      "matches": ["https://meet.google.com/*"],
-      "js": ["content.js"],
-      "run_at": "document_idle"
+      "matches": [
+        "https://meet.google.com/*"
+      ],
+      "js": [
+        "content.js"
+      ]
     }
   ],
+  "action": {
+    "default_popup": "login.html",
+    "default_icon": {
+      "16": "icons/icon.jpg",
+      "48": "icons/icon.jpg",
+      "128": "icons/icon.jpg"
+    }
+  },
   "icons": {
     "16": "icons/icon.jpg",
     "48": "icons/icon.jpg",

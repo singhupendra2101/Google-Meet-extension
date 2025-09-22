@@ -1,10 +1,15 @@
-import { model, Schema } from '../connection.js';
+import { Schema, model, Types } from 'mongoose';
 
 const meetSchema = new Schema({
-    name: String,
+    user: {
+        type: Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    name: { type: String },
     code: { type: String },
-    summary: String,
-    description: String,
+    summary: { type: String },
+    description: { type: String },
     start: { type: Date },
     end: { type: Date },
     createdAt: { type: Date, default: Date.now }
