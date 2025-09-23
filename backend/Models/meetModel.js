@@ -6,12 +6,11 @@ const meetSchema = new Schema({
         ref: 'User',
         required: true
     },
-    name: { type: String },
-    code: { type: String },
+    transcript: { type: String },
+    meetUrl: { type: String },
     summary: { type: String },
-    description: { type: String },
-    start: { type: Date },
-    end: { type: Date },
+    startTime: { type: String },
+    endTime: { type: Date },
     createdAt: { type: Date, default: Date.now }
 });
 

@@ -105,7 +105,7 @@ const MeetingPreviewModal = ({ meeting, onClose }) => {
                     </div>
                     <div>
                         <h3 className="font-bold text-lg mb-2 dark:text-white">Full Transcript</h3>
-                        <p className="text-gray-600 whitespace-pre-wrap bg-gray-50 p-4 rounded-md max-h-80 overflow-y-auto dark:bg-gray-700 dark:text-gray-300">{meeting.description || 'No transcript.'}</p>
+                        <p className="text-gray-600 whitespace-pre-wrap bg-gray-50 p-4 rounded-md max-h-80 overflow-y-auto dark:bg-gray-700 dark:text-gray-300">{meeting.transcript || 'No transcript.'}</p>
                     </div>
                 </main>
             </div>
@@ -218,7 +218,7 @@ const DashboardPage = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            const token = sessionStorage.getItem('user-token');
+            const token = localStorage.getItem('user-token');
             if (!token) {
                 router.push('/signup');
                 return;
@@ -226,7 +226,7 @@ const DashboardPage = () => {
             try {
                 const [userRes, meetingsRes] = await Promise.all([
                     fetch('http://localhost:5000/user/profile', { headers: { 'Authorization': `Bearer ${token}` } }),
-                    fetch('http://localhost:5000/meetings/usermeetings', { headers: { 'Authorization': `Bearer ${token}` } })
+                    fetch('http://localhost:5000/meet/usermeetings', { headers: { 'Authorization': `Bearer ${token}` } })
                 ]);
                 if (!userRes.ok || !meetingsRes.ok) throw new Error('Auth failed');
                 

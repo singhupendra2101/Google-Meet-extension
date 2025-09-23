@@ -46,20 +46,21 @@ const AuthPage = () => {
         const { confirmPassword, ...submitValues } = values;
         // FIX: Changed endpoint from /user/add to /user/signup
         await axios.post('http://localhost:5000/user/signup', submitValues);
-        toast.success("✅ Account created! Please Sign In now.");
+        toast.success("✅Account created! Please Sign In now.");
         resetForm();
         setIsSignUp(false);
       } else {
         // FIX: Changed endpoint to /user/login and corrected session storage logic
         const res = await axios.post('http://localhost:5000/user/login', values);
+        console.log(res.data);
+        
         if (res.data?.token) {
-          sessionStorage.setItem('user-token', res.data.token);
-          sessionStorage.setItem('user', JSON.stringify(res.data.result));
+          localStorage.setItem('user-token', res.data.token);
+          localStorage.setItem('user', JSON.stringify(res.data.result));
         }
         toast.success("✅ Signed in successfully!");
         resetForm();
-        // Using router.push for a smoother transition without a full page reload
-        router.push("/dashboard");
+        router.replace("/dashboard");
       }
     } catch (error) {
       toast.error("❌ Error: " + (error.response?.data?.message || error.message));
@@ -75,10 +76,11 @@ const AuthPage = () => {
       const res = await axios.post(process.env.NEXT_PUBLIC_GOOGLE_LOGIN_API, { token });
 
       if (res.data?.token) {
-        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('user-token', res.data.token);
+        localStorage.setItem('user', JSON.stringify(res.data.result));
         toast.dismiss();
         toast.success("✅ Signed in with Google successfully!");
-        router.push("/");
+        router.push("/dashboard"); // Changed from "/" to "/dashboard"
       }
     } catch (error) {
       toast.dismiss();

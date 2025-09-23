@@ -20,7 +20,7 @@ app.use(
 app.use(express.json({ limit: "50mb" }));
 
 app.use("/user", UserRouter);
-app.use("/meetings", meetRouter);
+app.use("/meet", meetRouter);
 
 async function loadSummarizationModel() {
   try {
