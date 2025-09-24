@@ -1,12 +1,17 @@
-const { model, Schema } = require('../connection');
+import { Schema, model, Types } from 'mongoose';
 
-const mySchema = new Schema({
-    name: String,
-    code: { type: String, required: true },
-    summary: String,
-    description: String,
-    start:{ type: Date, required: true },
-    end:{ type: Date, required: true },
+const meetSchema = new Schema({
+    user: {
+        type: Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    transcript: { type: String },
+    meetUrl: { type: String },
+    summary: { type: String },
+    startTime: { type: String },
+    endTime: { type: Date },
     createdAt: { type: Date, default: Date.now }
 });
-module.exports = model('meetnotes', mySchema);     // name - meet
+
+export default model('meetnotes', meetSchema);

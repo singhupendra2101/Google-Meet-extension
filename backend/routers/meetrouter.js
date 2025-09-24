@@ -1,89 +1,157 @@
-const express = require('express');
+// backend/routers/meetRouter.js (Updated)
+
+import express from "express";
+import meetModel from "../Models/meetModel.js";
+import { auth } from "../middlewares/auth.js";
+
 const router = express.Router();
-const Model = require('../Models/meetModel');
 
-router.post('/add', (req, res) => {
-    console.log(req.body);
-
-    new Model(req.body).save()
-        .then((result) => {
-            res.status(200).json(result);
-        }).catch((err) => {
-            console.log(err);
-            res.status(500).json(err);
-        });
+// Route to get all meetings for the logged-in user
+router.get("/usermeetings", auth, async (req, res) => {
+  try {
+    console.log(`Fetching meetings for user: ${req.user._id}`);
+    const meetings = await meetModel
+      .find({ user: req.user._id })
+      .sort({ startTime: -1 }); // Changed 'start' to 'startTime'
+    res.status(200).json(meetings);
+  } catch (error) {
+    console.error("Error fetching user meetings:", error.message);
+    res.status(500).json({ message: "Server error while fetching meetings" });
+  }
 });
 
-//getall
-router.get('/', (req, res) => {
-    Model.find()
-        .then((result) => {
-            res.status(200).json(result);
-        }).catch((err) => {
-            console.log(err);
-            res.status(500).json(err);
-        });
+router.post("/add", auth, (req, res) => {
+  console.log(req.body);
+
+  new meetModel({ ...req.body, user: req.user._id }) // Ensure user is associated
+    .save()
+    .then((result) => {
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json(err);
+    });
 });
-// : denotes url 
 
-router.get('/getbyid/:id', (req, res) => {
-    Model.findById(req.params.id)
-        .then((result) => {
-            res.status(200).json(result);
-        }).catch((err) => {
-            console.log(err);
-            res.status(500).json(err);
-        });
+//getall (Consider if this should be authenticated and/or filtered by user)
+router.get("/", (req, res) => {
+  meetModel
+    .find()
+    .then((result) => {
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json(err);
+    });
+});
+// : denotes url
 
-})
+router.get("/getbyid/:id", (req, res) => {
+  meetModel
+    .findById(req.params.id)
+    .then((result) => {
+      res.status(200).json(result);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json(err);
+    });
+});
 //delete
-router.delete('/delete/:id', (req, res) => {
-    Model.findByIdAndDelete(req.params.id)
-        .then((result) => {
-            res.status(200).json(result);
-        }).catch((err) => {
-            console.log(err);
-            res.status(500).json(err);
-        });
+router.delete("/delete/:id", auth, async (req, res) => {
+  // Added 'auth' middleware
+  try {
+    const meeting = await meetModel.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+    if (!meeting) {
+      return res.status(404).json({
+        message: "Meeting not found or you don't have permission to delete it.",
+      });
+    }
+    res.status(200).json({ message: "Meeting deleted successfully", meeting });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json(err);
+  }
 });
 
 //update
-router.put('/update/:id', (req, res) => {
-    Model.findByIdAndUpdate(req.params.id, req.body, { new: true })
-        .then((result) => {
-            res.status(200).json(result);
-        }).catch((err) => {
-            console.log(err);
-            res.status(500).json(err);
-        });
-});
-router.post('/summarize', async (req, res) => {
-    const { transcript } = req.body;
-    console.log('Transcript received for summarization.');
-
-    if (!transcript) {
-        return res.status(400).json({ error: 'Transcript is required.' });
+router.put("/update/:id", auth, async (req, res) => {
+  // Added 'auth' middleware
+  try {
+    const meeting = await meetModel.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
+      req.body,
+      { new: true }
+    );
+    if (!meeting) {
+      return res.status(404).json({
+        message: "Meeting not found or you don't have permission to update it.",
+      });
     }
-
-    try {
-        const result = await hf.summarization({
-            model: 'sshleifer/distilbart-cnn-12-6',
-            inputs: transcript,
-            parameters: {
-                min_length: 50,
-                max_length: 150,
-            }
-        });
-
-        const summary = result.summary_text;
-        console.log('Summary generated successfully.');
-        res.status(200).json({ summary: summary });
-
-    } catch (error) {
-        console.error('Error during summarization:', error);
-        res.status(500).json({ error: 'Failed to generate summary.' });
-    }
+    res.status(200).json(meeting);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json(err);
+  }
 });
 
+// ======== FIXED UPLOAD ROUTE ========
+router.post("/upload", auth, async (req, res) => {
+  try {
+    // 1. We no longer need userId from the body.
+    console.log(req.body);
 
-module.exports = router;
+    const { transcript, meetUrl, startTime, endTime } = req.body;
+
+    // summarize
+    const { GoogleGenerativeAI } = await import("@google/generative-ai");
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+    let summary = "Summary could not be generated.";
+    if (transcript) {
+      try {
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" }); // Changed 'gemini-pro' to 'gemini-1.0-pro'
+        const prompt = `Provide a concise summary for the following meeting transcript:\n\n${transcript}`;
+        const result = await model.generateContent(prompt);
+        console.log(result);
+        
+        const response = result.response;
+        summary = response.text();
+        console.log(summary);
+        
+        console.log("Summary generated by Gemini.");
+      } catch (summaryError) {
+        console.error("Error generating summary with Gemini:", summaryError);
+        // The summary will fall back to the default message.
+      }
+    }
+
+    // 2. The `auth` middleware provides the secure user ID at `req.user._id`.
+    //    We use this to create the new meeting.
+    const newMeeting = new meetModel({
+      // Changed 'Meeting' to 'meetModel'
+      user: req.user._id,
+      transcript,
+      meetUrl,
+      startTime,
+      endTime,
+      summary,
+    });
+
+    await newMeeting.save();
+    res
+      .status(201)
+      .json({ message: "Meeting saved successfully", meeting: newMeeting });
+  } catch (error) {
+    // This is where your original error was being logged. It's now fixed.
+    console.error("Error saving meeting:", error);
+    res.status(500).json({ message: "Server error while saving meeting" });
+  }
+});
+
+export default router;
