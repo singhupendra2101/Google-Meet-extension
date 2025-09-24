@@ -14,7 +14,7 @@
   sidebar.style.height = '100%';
   sidebar.style.background = '#fff';
   sidebar.style.boxShadow = '-2px 0 8px rgba(0,0,0,0.15)';
-  sidebar.style.zIndex = '999999';
+  sidebar.style.zIndex = '999999'; 
   sidebar.style.display = 'flex';
   sidebar.style.flexDirection = 'column';
   sidebar.style.borderLeft = '1px solid #e0e0e0';
