@@ -8,7 +8,7 @@ import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
-// 1. Re-introducing Next.js specific imports for Image and Routing
+
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
